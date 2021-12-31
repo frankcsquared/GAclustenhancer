@@ -1,3 +1,15 @@
+#' dist.corr
+#' calculate the distance between two datasets or distance of one dataset, if d2 is null
+#'
+#' @param data first dataset
+#' @param d2 second dataset
+#' @param method method of distance calculation
+#'
+#' @return distance matrix
+#' @importFrom stats dist
+#' @export
+#'
+#' @examples
 dist.corr <- function(data, d2=NULL, method=c("pearson", "kendall", "spearman", "euclidean", "manhattan")){
 
   if (is.null(data)){

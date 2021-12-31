@@ -1,14 +1,31 @@
-# source("./R/cluster.R")
-# source("./R/dist.R")
+source("./R/cluster.R")
+source("./R/dist.R")
 
-fitness.cor <- function(individual, penalty.function = NULL, k, data, known_lfc, method, ...){
+#' fitness.cor
+#' Correlation-based fitness function
+#'
+#' @param individual individual from GA object
+#' @param penalty.function user-specified penalty
+#' @param k clusters
+#' @param data original dataset
+#' @param known_lfc lfc for comparison
+#' @param method correlation method
+#' @param ... additional params
+#'
+#' @return numeric value
+#' @importFrom stats as.dist
+#' @export
+#'
+#' @examples
+fitness.cor <- function(individual, penalty.function = NULL, k, data, known_lfc, method = c('pearson', 'spearman', 'kendall'), ...){
 
   dims <- length(individual)/k
   fitness.value <- NA
 
   m.individual <- matrix(individual, nrow = k, ncol = dims)
 
-  which.dists <- dist.corr(data, d2=m.individual, method = "pearson")
+  method <- match.arg(method)
+  which.dists <- dist.corr(data, d2=m.individual, method = method)
 
   which.dists <- as.factor(which.dists)
 

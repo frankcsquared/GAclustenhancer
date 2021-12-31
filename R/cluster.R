@@ -1,5 +1,16 @@
-# genes have to be in columns
+#' compute.l2fc
+#' calculate l2fc between clusters
+#'
+#' @param data dataset (transposed)
+#' @param labels cluster label values
+#'
+#' @return vector
+#' @export
+#'
+#' @examples
 compute.l2fc <- function(data, labels){
+  # genes have to be in columns of data
+
   if (nrow(data) != length(labels)){
     stop("Rows in data not equal to length of Labels")
   }
@@ -16,6 +27,18 @@ compute.l2fc <- function(data, labels){
   return(l2fc)
 }
 
+#' cluster.l2fc
+#' cluster data based on l2fc
+#'
+#' @param mat dataset
+#' @param data_l2fc known l2fc
+#'
+#' @return list of matrices
+#' @importFrom stats hclust
+#' @importFrom stats cutree
+#' @export
+#'
+#' @examples
 cluster.l2fc <- function(mat, data_l2fc){
   commongene <- intersect(rownames(mat), names(data_l2fc))
   mat <- t(mat)[, commongene]

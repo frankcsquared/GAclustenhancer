@@ -1,6 +1,6 @@
 # libraries are used along the code by explicit refer syntax package::function()
-# source("./R/fitness.R")
-# source("./R/dist.R")
+source("./R/fitness.R")
+source("./R/dist.R")
 
 ga.clust.env <- new.env(parent = emptyenv())
 
@@ -12,9 +12,21 @@ setClass(Class = "ga.clust",
                    lfc = "vector",
                    call = "ANY"))
 
-# generates an initial population of candidate centers for partitions
+#' populate
+#' Generates an initial population of candidate centers for partitions
+#'
+#' @param object initial gaclust object
+#' @param dims number of columns of the dataset
+#' @param k number of clusters
+#'
+#' @return numeric matrix of size popSize by dims * k
+#' @importFrom stats runif
+#' @export
+#'
+#' @example
+#' Given a GA object declared with params popSize, lower, upper:
+#' object@population = populate(object, dims, k)
 populate <- function(object, dims, k) {
-
   population <- matrix(as.double(NA), nrow = object@popSize, ncol = dims * k)
 
   for(j in 1:length(object@lower)){
@@ -24,7 +36,29 @@ populate <- function(object, dims, k) {
   return(population)
 }
 
-# entry point of the gama package
+#' ga.clust
+#' Main function, calls GA function to cluster data using correlation-based fitness
+#'
+#' @param dataset dataset to cluster
+#' @param crossover.rate probability crossover occurs
+#' @param k number of clusters
+#' @param mutation.rate probability of mutation
+#' @param elitism % of population retained in next iter
+#' @param pop.size initial population size
+#' @param generations repetitions
+#' @param seed.ga seed
+#' @param method correlation method
+#' @param penalty.function fitness penalty
+#' @param plot.internals plot internal messages?
+#' @param known_lfc external lfc exists?
+#' @param ... additional params
+#'
+#' @return ga.clust object
+#' @export
+#' @importFrom stats cor
+#' @importFrom utils head
+#'
+#' @examples
 ga.clust <- function(dataset = NULL, crossover.rate = 0.9, k = 2, #scale = FALSE,
                      mutation.rate = 0.01, elitism = 0.05, pop.size = 25,
                      generations = 100, seed.ga = 42, method = "pearson",
@@ -33,48 +67,37 @@ ga.clust <- function(dataset = NULL, crossover.rate = 0.9, k = 2, #scale = FALSE
                      known_lfc = NULL, ...) {
 
   # --- arguments validation --- #
-  Check <- ArgumentCheck::newArgCheck()
 
-  if (is.null(dataset))
-    ArgumentCheck::addError(
-      msg = "'dataset' can not be NULL",
-      argcheck = Check)
+  if (is.null(dataset)){
+    stop("'dataset' can not be NULL")
+  }
 
-  if (class(dataset) != 'data.frame')
-    ArgumentCheck::addError(
-      msg = "'dataset' must be a data.frame object.",
-      argcheck = Check)
+  if (class(dataset) != 'data.frame'){
+    stop("'dataset' must be a data.frame object.")
+  }
 
-  if (is.null(k))
-    ArgumentCheck::addError(
-      msg = "'k' can not be NULL",
-      argcheck = Check)
+  if (is.null(k)){
+    stop("'k' can not be NULL")
+  }
 
   if (is.numeric(k)) {
     # forces k to be an integer value
     k <- as.integer(k)
 
     if (k < 2) {
-      ArgumentCheck::addError(
-        msg = "'k' must be a positive integer value greater than one (k > 1)", # or one of the methods to estimate it: 'minimal' or 'broad'.",
-        argcheck = Check)
+      stop("'k' must be a positive integer value greater than one (k > 1)")
     }
 
   } else if (is.character(k)) {
-    ArgumentCheck::addError(
-      msg = "'k' must be a positive integer value greater than one (k > 1)", #, or one of the methods to estimate it: 'minimal' or 'broad'.",
-      argcheck = Check)
+      #or one of the methods to estimate it: 'minimal' or 'broad'."
+      stop("'k' must be a positive integer value greater than one (k > 1)")
   }
 
   if (!is.null(penalty.function)) {
     if (class(penalty.function) != "function") {
-      ArgumentCheck::addError(
-        msg = "'penalty.function' must be a valid R function.",
-        argcheck = Check)
+      stop("'penalty.function' must be a valid R function.")
     }
   }
-
-  ArgumentCheck::finishArgCheck(Check)
 
   # --- final of arguments validation --- #
 
@@ -129,7 +152,7 @@ ga.clust <- function(dataset = NULL, crossover.rate = 0.9, k = 2, #scale = FALSE
   which.dists <- dist.corr(dataset, d2=solution, method = "pearson")
 
   # computes lfc and correlation for each cluster label
-  log2foldchange <- compute_l2fc(dataset, as.factor(which.dists))
+  log2foldchange <- compute.l2fc(dataset, as.factor(which.dists))
   corr <- cor(log2foldchange, known_lfc)
 
   # builds the solution object
@@ -163,10 +186,21 @@ ga.clust <- function(dataset = NULL, crossover.rate = 0.9, k = 2, #scale = FALSE
   }
 
   # return an object of class 'ga.clust'
-  return (object)
+  return(object)
 
 }
 
+#' print.ga.clust
+#' Print out GA Clustering results
+#'
+#' @param x ga.clust object
+#' @param ... additional params
+#'
+#' @return NULL
+#' @export print.ga.clust
+#' @export
+#'
+#' @examples
 print.ga.clust <- function(x, ...) {
 
   cat("\n Description of GA clustering class objects: :\n")
@@ -185,4 +219,5 @@ print.ga.clust <- function(x, ...) {
   cat("\nCall:\n")
   print(x@call)
 }
+
 setMethod("print", "ga.clust", print.ga.clust)
