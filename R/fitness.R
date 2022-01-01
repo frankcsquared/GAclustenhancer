@@ -37,7 +37,6 @@ fitness.cor <- function(individual, penalty.function = NULL, k, data, known_lfc,
   } else {
     cluster_lfc <- compute.l2fc(data, which.dists)
     fitness.value <- abs(cor(cluster_lfc, known_lfc))
-    cat(sprintf("Fitness: %f\n", fitness.value))
   }
 
   return(fitness.value)

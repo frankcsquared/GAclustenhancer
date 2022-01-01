@@ -1,4 +1,4 @@
-^GAclustenhancer\.Rproj$
-^\.Rproj\.user$
-^LICENSE\.md$
-^README\.Rmd$
+^README.Rmd
+^LICENSE.md
+^GAclustenhancer.Rproj
+^data-raw

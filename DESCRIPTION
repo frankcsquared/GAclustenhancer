@@ -13,7 +13,9 @@ License: MIT + file LICENSE
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 Imports: GA, methods, Rfast, stats, utils
-Suggests: DESeq2, SummarizedExperiment
 RoxygenNote: 7.1.2
 Suggests: 
-    testthat (>= 3.0.0)
+    testthat (>= 3.0.0), DESeq2, SummarizedExperiment
+LazyData: true
+Depends: 
+    R (>= 2.10)

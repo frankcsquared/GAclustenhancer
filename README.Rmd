@@ -2,8 +2,6 @@
 output: github_document
 ---
 
-<!-- README.md is generated from README.Rmd. Please edit that file -->
-
 ```{r, include = FALSE}
 knitr::opts_chunk$set(
   collapse = TRUE,
@@ -18,7 +16,11 @@ knitr::opts_chunk$set(
 <!-- badges: start -->
 <!-- badges: end -->
 
-The goal of GAclustenhancer is to ...
+The goal of GAclustenhancer is to use genetic algorithms to improve clustering in situations where clusters are used to calculate correlation. A GA with a correlation-based fitness function optimizes clustering results to maximize correlation values. A common use for this package is with gene expression data analysis. An example using sample gene expression data is shown below.
+
+This package requires a few imports: GA, methods, Rfast, stats, utils
+
+While not necessary, we suggest you also import DESeq2, SummarizedExperiment for working with gene datasets.
 
 ## Installation
 
@@ -34,62 +36,20 @@ devtools::install_github("frankcsquared/GAclustenhancer")
 This is a basic example using pre-loaded data which shows you how to solve a common problem:
 
 ```{r example}
+## load in packages (commented out for markdown)
+
 library(GAclustenhancer)
 library(DESeq2)
 library(SummarizedExperiment)
 
-print(getwd())
-
-## set paths (change paths before using)
-in_counts <- "C:\\Users\\frank\\OneDrive\\Documents\\GAclustenhancer\\data\\BeatAML_count.rds" #raw gene expression counts
-in_l2fc <- "C:\\Users\\frank\\OneDrive\\Documents\\GAclustenhancer\\data\\deseq_results_tcga_flt3.rds" #l2fc results calculated from DESeq2
-
-## read in L2fc and subset to only significant genes
-data_l2fc <- readRDS(in_l2fc)
-data_l2fc <- data_l2fc[data_l2fc$padj < 0.05, ]
-input_lfc <- data_l2fc$log2FoldChange
-names(input_lfc) <- rownames(data_l2fc)
-
-## read in count matrix and convert from ExpressionSet to Summarized Experiment
-count_data <- readRDS(in_counts)
-feature_data <- fData(count_data)
-
-## convert to DESeq object
-dds <- DESeqDataSetFromMatrix(countData = round(exprs(count_data)), colData = pData(count_data), design = ~ 1)
-
-## apply vst transform (more information: https://bioconductor.org/packages/devel/bioc/manuals/DESeq2/man/DESeq2.pdf)
-gene_counts_vst_norm <- varianceStabilizingTransformation(dds, blind = TRUE)
-
-## drop genes with duplicated gene names
-gene_counts_vst_norm <- gene_counts_vst_norm[, !is.na(gene_counts_vst_norm$FLT3.ITD)]
-gene_counts_vst_norm <- gene_counts_vst_norm[!duplicated(feature_data$gene_name), ]
-feature_data <- feature_data[!duplicated(feature_data$gene_name), ]
-
-## reassign rownames from ENSEMBL gene IDs to fData mapping
-rownames(gene_counts_vst_norm) <- feature_data$gene_name
-
-## subset only commongenes in each dataset
-commongene <- intersect(rownames(gene_counts_vst_norm), names(input_lfc))
-
-## subset gene counts to only include commongenes
-gene_counts_vst_norm <- gene_counts_vst_norm[commongene, ]
-input_lfc <- input_lfc[commongene]
-
-## finalize data and transposed data
-data <- as.data.frame(assay(gene_counts_vst_norm))
-t_data <- as.data.frame(t(assay(gene_counts_vst_norm)))
+## set paths and read in data (change paths before using)
+load("./data/count_data.rda") #gene expression count data of dim 882 genes by 348 cell line samples, preprocessed in data-raw/preprocess.R
+load("./data/t_count_data.rda") #transposed and preprocessed gene expression count data
+load("./data/input_lfc.rda") #L2fc results calculated from DESeq2
 
 ## run example on subset of dataset
-obj_gene <- ga.clust(dataset = t_data[1:100, 1:50], k = 2, plot.internals = TRUE, seed.p = 42, pop.size = ncol(data[1:50, 1:100]), known_lfc = input_lfc[1:50])
+obj_gene <- ga.clust(dataset = t_count_data[1:100, 1:50], k = 2, plot.internals = TRUE, seed.p = 42, pop.size = ncol(count_data[1:50, 1:100]), known_lfc = input_lfc[1:50])
 
 ## run example on entire dataset (runtime > 1 hour)
 #obj_gene <- ga.clust(dataset = t_data, k = 2, plot.internals = TRUE, seed.p = 42, pop.size = ncol(data), known_lfc = input_lfc)
 ```
-
-Output plot from ga.clust call:
-
-```{r, out.width="0.3\\linewidth", include=TRUE, fig.align="center", fig.cap=c("your caption"), echo=FALSE}
-knitr::include_graphics("C:\\Users\\frank\\OneDrive\\Documents\\GAclustenhancer\\data\\Rplot.pdf")
-```
-
-In that case, don't forget to commit and push the resulting figure files, so they display on GitHub and CRAN.
