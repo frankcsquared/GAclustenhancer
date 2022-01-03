@@ -29,80 +29,12 @@ devtools::install_github("frankcsquared/GAclustenhancer")
 
 ## Example
 
-This is a basic example using pre-loaded data which shows you how to
-solve a common problem:
+This is a basic example using sample data which shows you how to solve a
+common problem:
 
 ``` r
-## load in packages (commented out for markdown)
-
+## load in packages
 library(GAclustenhancer)
-library(DESeq2)
-#> Loading required package: S4Vectors
-#> Loading required package: stats4
-#> Loading required package: BiocGenerics
-#> 
-#> Attaching package: 'BiocGenerics'
-#> The following objects are masked from 'package:stats':
-#> 
-#>     IQR, mad, sd, var, xtabs
-#> The following objects are masked from 'package:base':
-#> 
-#>     anyDuplicated, append, as.data.frame, basename, cbind, colnames,
-#>     dirname, do.call, duplicated, eval, evalq, Filter, Find, get, grep,
-#>     grepl, intersect, is.unsorted, lapply, Map, mapply, match, mget,
-#>     order, paste, pmax, pmax.int, pmin, pmin.int, Position, rank,
-#>     rbind, Reduce, rownames, sapply, setdiff, sort, table, tapply,
-#>     union, unique, unsplit, which.max, which.min
-#> 
-#> Attaching package: 'S4Vectors'
-#> The following objects are masked from 'package:base':
-#> 
-#>     expand.grid, I, unname
-#> Loading required package: IRanges
-#> 
-#> Attaching package: 'IRanges'
-#> The following object is masked from 'package:grDevices':
-#> 
-#>     windows
-#> Loading required package: GenomicRanges
-#> Loading required package: GenomeInfoDb
-#> Loading required package: SummarizedExperiment
-#> Loading required package: MatrixGenerics
-#> Loading required package: matrixStats
-#> 
-#> Attaching package: 'MatrixGenerics'
-#> The following objects are masked from 'package:matrixStats':
-#> 
-#>     colAlls, colAnyNAs, colAnys, colAvgsPerRowSet, colCollapse,
-#>     colCounts, colCummaxs, colCummins, colCumprods, colCumsums,
-#>     colDiffs, colIQRDiffs, colIQRs, colLogSumExps, colMadDiffs,
-#>     colMads, colMaxs, colMeans2, colMedians, colMins, colOrderStats,
-#>     colProds, colQuantiles, colRanges, colRanks, colSdDiffs, colSds,
-#>     colSums2, colTabulates, colVarDiffs, colVars, colWeightedMads,
-#>     colWeightedMeans, colWeightedMedians, colWeightedSds,
-#>     colWeightedVars, rowAlls, rowAnyNAs, rowAnys, rowAvgsPerColSet,
-#>     rowCollapse, rowCounts, rowCummaxs, rowCummins, rowCumprods,
-#>     rowCumsums, rowDiffs, rowIQRDiffs, rowIQRs, rowLogSumExps,
-#>     rowMadDiffs, rowMads, rowMaxs, rowMeans2, rowMedians, rowMins,
-#>     rowOrderStats, rowProds, rowQuantiles, rowRanges, rowRanks,
-#>     rowSdDiffs, rowSds, rowSums2, rowTabulates, rowVarDiffs, rowVars,
-#>     rowWeightedMads, rowWeightedMeans, rowWeightedMedians,
-#>     rowWeightedSds, rowWeightedVars
-#> Loading required package: Biobase
-#> Welcome to Bioconductor
-#> 
-#>     Vignettes contain introductory material; view with
-#>     'browseVignettes()'. To cite Bioconductor, see
-#>     'citation("Biobase")', and for packages 'citation("pkgname")'.
-#> 
-#> Attaching package: 'Biobase'
-#> The following object is masked from 'package:MatrixGenerics':
-#> 
-#>     rowMedians
-#> The following objects are masked from 'package:matrixStats':
-#> 
-#>     anyMissing, rowMedians
-library(SummarizedExperiment)
 
 ## set paths and read in data (change paths before using)
 load("./data/count_data.rda") #gene expression count data of dim 882 genes by 348 cell line samples, preprocessed in data-raw/preprocess.R
@@ -263,4 +195,31 @@ obj_gene <- ga.clust(dataset = t_count_data[1:100, 1:50], k = 2, plot.internals 
 
 ## run example on entire dataset (runtime > 1 hour)
 #obj_gene <- ga.clust(dataset = t_data, k = 2, plot.internals = TRUE, seed.p = 42, pop.size = ncol(data), known_lfc = input_lfc)
+```
+
+## Comparison with Non-GA Enhanced Clustering
+
+Our GA-based clustering algorithm acheives a correlation of 0.826 by
+iteratively optimizing the cluster partition until high correlation is
+achieved. Non-GA enhanced clustering (hclust function in R) acheives a
+correlation of 0.693 on the same dataset, as shown below:
+
+``` r
+library(GAclustenhancer)
+
+## set paths and read in data (change paths before using)
+load("./data/count_data.rda") #gene expression count data of dim 882 genes by 348 cell line samples, preprocessed in data-raw/preprocess.R
+load("./data/t_count_data.rda") #transposed and preprocessed gene expression count data
+load("./data/input_lfc.rda") #L2fc results calculated from DESeq2
+
+## cluster data
+cluster_results <- cluster.l2fc(count_data, input_lfc)
+#> Rows of Matrix 348
+#> Cols of Matrix 882
+#> Length of Cluster Labels 348
+#> Length of DeSeq L2fc 882
+
+## correlate with existing l2fc
+abs(cor(cluster_results$lfc, input_lfc))
+#> [1] 0.6933314
 ```
